@@ -23,3 +23,16 @@ gitlab_rails['ldap_base'] = '{{ gitlab_ldap_base }}'
 
 # To change other settings, see:
 # https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/README.md#changing-gitlab-yml-settings
+
+gitlab_rails['omniauth_enabled'] = true
+gitlab_rails['omniauth_allow_single_sign_on'] = false
+gitlab_rails['block_auto_created_users'] = true
+gitlab_rails['omniauth_providers'] = [
+  {
+    "name" => "github",
+    "app_id" => "",
+    "app_secret" => "",
+    "url" => "https://github.com/",
+    "args" => { "scope" => "user:email" }
+  }
+]

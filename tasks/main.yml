@@ -79,6 +79,22 @@
     creates={{ gitlab_ssl_certificate }}
   when: gitlab_create_self_signed_cert
 
+- name: Enable OmniAuth (to sync repos from Github)
+  lineinfile: "dest=/var/opt/gitlab/gitlab-rails/etc/gitlab.yml regexp='^omniauth:\n    # Allow login via Twitter, Google, etc. using OmniAuth providers\n    enabled: false' line='omniauth:\n    # Allow login via Twitter, Google, etc. using OmniAuth providers\n    enabled: true' state=present"
+  when: (ansible_os_family == 'RedHat') and (ansible_product_version == 'RHEL 7.0.0 PC (i440FX + PIIX, 1996)')
+
+- name: Disable allow_single_sign_on in gitlab.yml
+  lineinfile: "dest=/var/opt/gitlab/gitlab-rails/etc/gitlab.yml regexp='^allow_single_sign_on:' line='allow_single_sign_on: false' state=present"
+  when: (ansible_os_family == 'RedHat') and (ansible_product_version == 'RHEL 7.0.0 PC (i440FX + PIIX, 1996)')
+
+- name: Change block_auto_created_users in gitlab.yml
+  lineinfile: "dest=/var/opt/gitlab/gitlab-rails/etc/gitlab.yml regexp='^block_auto_created_users:' line='block_auto_created_users: true' state=present"
+  when: (ansible_os_family == 'RedHat') and (ansible_product_version == 'RHEL 7.0.0 PC (i440FX + PIIX, 1996)')
+
+- name: Change auto_link_ldap_user in gitlab.yml
+  lineinfile: "dest=/var/opt/gitlab/gitlab-rails/etc/gitlab.yml regexp='^auto_link_ldap_user:' line='auto_link_ldap_user: false' state=present"
+  when: (ansible_os_family == 'RedHat') and (ansible_product_version == 'RHEL 7.0.0 PC (i440FX + PIIX, 1996)')
+
 - name: Copy GitLab configuration file.
   template:
     src: gitlab.rb.j2
@@ -87,3 +103,11 @@
     group: root
     mode: 0600
   notify: restart gitlab
+
+- name: Configure firewalld (CentOS/RHEL 7)
+  shell: firewall-cmd --permanent --add-port=443/tcp && firewall-cmd --permanent --add-port=80/tcp
+  when: (ansible_os_family == 'RedHat') and (ansible_product_version == 'RHEL 7.0.0 PC (i440FX + PIIX, 1996)')
+
+- name: Restart firewalld (CentOS/RHEL 7)
+  service: name=firewalld.service state=restarted
+  when: (ansible_os_family == 'RedHat') and (ansible_product_version == 'RHEL 7.0.0 PC (i440FX + PIIX, 1996)')
